@@ -28,11 +28,12 @@ end
 function M.collect_test_names(bufnr)
   local node = ts_utils.get_node_at_cursor()
   local test_names = {}
+  local function_name, row = nil, nil
 
   while node do
     if node:type() == 'function_definition' then
-      local function_name = vim.treesitter.get_node_text(node:named_child(0), bufnr)
-      local row, _, _ = node:start()
+      function_name = vim.treesitter.get_node_text(node:named_child(0), bufnr)
+      row, _, _ = node:start()
       test_names[function_name] = row
     end
     node = node:parent()
@@ -72,17 +73,24 @@ end
 function M.run_test()
   local bufnr = vim.api.nvim_get_current_buf()
   local test_names, maybe_one = M.collect_test_names(bufnr)
+  local args = {
+    'test',
+    '--test-debug',
+    vim.api.nvim_buf_get_name(bufnr),
+    '--',
+    '-v',
+    '-s',
+    '--no-header'
+  }
 
   if maybe_one then
-    function_name, _ = next(test_names)
-    test_args = {'-v', '-k ' .. function_name}
-  else
-    test_args = {'-v'}
+    local function_name, _ = next(test_names)
+    table.insert(args, '-k ' .. function_name)
   end
 
   Job:new({
-    command = 'pytest',
-    args = test_args,
+    command = 'pants',
+    args = args,
     on_stdout = function(j, data)
       if data:find('::') then
         local test_name = M.split_string(M.split_string(data, '::')[2], ' ')[1]
@@ -103,24 +111,43 @@ function M.run_test()
   }):sync() -- or start()
 end
 
+function M.write_to_temp_buff(buff, content)
+  vim.schedule(function()
+    vim.api.nvim_buf_set_lines(buff, -1, -1, false, content)
+  end)
+end
+
 function M.run_test_in_split()
   local bufnr = vim.api.nvim_get_current_buf()
   local test_names, maybe_one = M.collect_test_names(bufnr)
+  local newbuf = vim.api.nvim_create_buf(false, true)
+  local args = {
+    'test',
+    '--test-debug',
+    vim.api.nvim_buf_get_name(bufnr),
+    '--',
+    '-v',
+    '-s',
+    '--no-header'
+  }
 
   if maybe_one then
-    function_name, _ = next(test_names)
-    args = '-v -k ' .. function_name
-  else
-    args = '-v'
+    local function_name, _ = next(test_names)
+    table.insert(args, '-k ' .. function_name)
   end
 
-  vim.cmd('botright vsplit')
-  vim.cmd('vertical resize 120')
-  if #args > 0 then
-    vim.cmd('exe "term pants test % -- ' .. args .. '"')
-  else
-    vim.cmd('exe "term pants test %"')
-  end
+  Job:new({
+    command = 'pants',
+    args = args,
+    on_exit = function(j, return_val)
+      M.write_to_temp_buff(newbuf, j:result())
+    end,
+  }):sync() -- or start()
+
+  vim.api.nvim_buf_call(newbuf, function()
+    vim.cmd('botright vsplit')
+    vim.cmd('vertical resize 120')
+  end)
 end
 
 return M

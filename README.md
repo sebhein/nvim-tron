@@ -30,8 +30,10 @@ use {
 
 ## TODO
 
+- [x] make it work with pants
 - [ ] explain usage in ReadMe
 - [ ] add some screenshots as example in in ReadMe
 - [ ] make it configurable
-- [ ] record and show output of test runs
-- [ ] add rust
+- [ ] record and show output of test runs using an overlay window
+- [ ] handle parametrized tests
+- [ ] add cargo test runner
