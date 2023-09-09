@@ -108,7 +108,7 @@ function M.run_test()
       ----print(return_val)
       ----print(vim.inspect(j:result()))
     --end,
-  }):sync() -- or start()
+  }):start()
 end
 
 function M.write_to_temp_buff(buff, content)
@@ -142,7 +142,7 @@ function M.run_test_in_split()
     on_exit = function(j, return_val)
       M.write_to_temp_buff(newbuf, j:result())
     end,
-  }):sync() -- or start()
+  }):start()
 
   vim.api.nvim_buf_call(newbuf, function()
     vim.cmd('botright vsplit')
