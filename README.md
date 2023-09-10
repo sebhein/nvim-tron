@@ -31,8 +31,10 @@ use {
 ## TODO
 
 - [x] make it work with pants
-- [ ] find line numbers of tests AFTER the test has finished
-- [ ] send a notification when test has finished
+- [x] find line numbers of tests AFTER the test has finished
+- [x] send a notification when test has finished
+- [ ] use fancy notification
+- [ ] dont refresh tree for each test
 - [ ] explain usage in ReadMe
 - [ ] add some screenshots as example in in ReadMe
 - [ ] make it configurable

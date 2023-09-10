@@ -1,21 +1,23 @@
 -- Third party imports
 local ts_utils = require 'nvim-treesitter.ts_utils'
 local Job = require 'plenary.job'
+local BufferObject = require 'buffer_object'
+local api = vim.api
 
-local M = {}
+local M = {
+  _test_buffs = {},
+}
 
 -- Define signs and mappings
-vim.api.nvim_set_hl(0, 'Failure', {fg='#ff0000'})
-vim.api.nvim_set_hl(0, 'Success', {fg='#00ff00'})
-vim.fn.sign_define('Failure', {text='✗', texthl='Failure'})
-vim.fn.sign_define('Success', {text='✓', texthl='Success'})
+api.nvim_set_hl(0, 'TronFailure', {fg='#ff0000'})
+api.nvim_set_hl(0, 'TronSuccess', {fg='#00ff00'})
+vim.fn.sign_define('TronFailure', {text='✗', texthl='TronFailure'})
+vim.fn.sign_define('TronSuccess', {text='✓', texthl='TronSuccess'})
 
 
-function M.place_sign(type, bufnr, node)
-  vim.schedule(function()
-    local row, _, _ = node:start()
-    vim.fn.sign_place(0, 'testa', type, bufnr, {lnum=row + 1, priority=10}) 
-  end)
+
+function M.clear_signs_in_current_buffer()
+  vim.fn.sign_unplace('TronSigns', {buffer=api.nvim_get_current_buf()})
 end
 
 function M.split_string(to_split, seperator)
@@ -38,7 +40,7 @@ function M.collect_test_names(bufnr)
     node = node:parent()
   end
 
-  if #test_names > 0 then
+  if next(test_names) then
     return test_names, true
   end
   
@@ -66,18 +68,30 @@ function M.collect_test_names(bufnr)
   return test_names, false
 end
 
+function M.get_test_file(bufnr)
+  if M._test_buffs[bufnr] == nil then
+    M._test_buffs[bufnr] = BufferObject:new(bufnr)
+  end
+  return M._test_buffs[bufnr]
+end
+
 function M.run_test()
-  local bufnr = vim.api.nvim_get_current_buf()
+  M.clear_signs_in_current_buffer()
+  local bufnr = api.nvim_get_current_buf()
+  local CurrentTestFile = M.get_test_file(bufnr)
+
   local test_names, maybe_one = M.collect_test_names(bufnr)
   local args = {
     'test',
     '--test-debug',
-    vim.api.nvim_buf_get_name(bufnr),
+    CurrentTestFile:get_path(),
     '--',
     '-v',
     '-s',
     '--no-header'
   }
+
+  print(maybe_one)
 
   if maybe_one then
     local function_name, _ = next(test_names)
@@ -93,57 +107,29 @@ function M.run_test()
         local node = test_names[test_name]
         if node == nil then goto continue end
         if data:find('FAILED') then
-          M.place_sign('Failure', bufnr, node)
+          CurrentTestFile:place_sign('TronFailure', test_name)
         else
-          M.place_sign('Success', bufnr, node)
+          CurrentTestFile:place_sign('TronSuccess', test_name)
         end
         ::continue::
       end
     end,
-    --on_exit = function(j, return_val)
-      ----print(return_val)
-      ----print(vim.inspect(j:result()))
-    --end,
-  }):start()
-end
-
-function M.write_to_temp_buff(buff, content)
-  vim.schedule(function()
-    vim.api.nvim_buf_set_lines(buff, -1, -1, false, content)
-  end)
-end
-
-function M.run_test_in_split()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local test_names, maybe_one = M.collect_test_names(bufnr)
-  local newbuf = vim.api.nvim_create_buf(false, true)
-  local args = {
-    'test',
-    '--test-debug',
-    vim.api.nvim_buf_get_name(bufnr),
-    '--',
-    '-v',
-    '-s',
-    '--no-header'
-  }
-
-  if maybe_one then
-    local function_name, _ = next(test_names)
-    table.insert(args, '-k ' .. function_name)
-  end
-
-  Job:new({
-    command = 'pants',
-    args = args,
     on_exit = function(j, return_val)
-      M.write_to_temp_buff(newbuf, j:result())
+      if return_val == 0 then
+        print('✓ All tests passed!')
+      else
+        print('✗ One or more tests failed!')
+      end
+      CurrentTestFile:write_to_scratch(j:result())
+      --print(return_val)
+      --print(vim.inspect(j:result()))
     end,
   }):start()
+end
 
-  vim.api.nvim_buf_call(newbuf, function()
-    vim.cmd('botright vsplit')
-    vim.cmd('vertical resize 120')
-  end)
+function M.show_output()
+  local CurrentTestFile = M.get_test_file(api.nvim_get_current_buf())
+  CurrentTestFile:open_scratch()
 end
 
 return M
