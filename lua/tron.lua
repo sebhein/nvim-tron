@@ -11,8 +11,9 @@ vim.fn.sign_define('Failure', {text='✗', texthl='Failure'})
 vim.fn.sign_define('Success', {text='✓', texthl='Success'})
 
 
-function M.place_sign(type, bufnr, row)
+function M.place_sign(type, bufnr, node)
   vim.schedule(function()
+    local row, _, _ = node:start()
     vim.fn.sign_place(0, 'testa', type, bufnr, {lnum=row + 1, priority=10}) 
   end)
 end
@@ -28,19 +29,16 @@ end
 function M.collect_test_names(bufnr)
   local node = ts_utils.get_node_at_cursor()
   local test_names = {}
-  local function_name, row = nil, nil
 
   while node do
     if node:type() == 'function_definition' then
-      function_name = vim.treesitter.get_node_text(node:named_child(0), bufnr)
-      row, _, _ = node:start()
-      test_names[function_name] = row
+      local function_name = vim.treesitter.get_node_text(node:named_child(0), bufnr)
+      test_names[function_name] = node
     end
     node = node:parent()
   end
 
-  if function_name then
-    test_names[function_name] = row
+  if #test_names > 0 then
     return test_names, true
   end
   
@@ -53,15 +51,13 @@ function M.collect_test_names(bufnr)
         while sibling do
           if sibling:type() == 'function_definition' then
             local function_name = vim.treesitter.get_node_text(sibling:named_child(0), bufnr)
-            local row, _, _ = sibling:start()
-            test_names[function_name] = row
+            test_names[function_name] = sibling
           end
           sibling = sibling:next_sibling()
         end
       elseif child:type() == 'function_definition' then
         local function_name = vim.treesitter.get_node_text(child:named_child(0), bufnr)
-        local row, _, _ = child:start()
-        test_names[function_name] = row
+        test_names[function_name] = child
       end
       child = child:next_sibling()
     end
@@ -94,12 +90,12 @@ function M.run_test()
     on_stdout = function(j, data)
       if data:find('::') then
         local test_name = M.split_string(M.split_string(data, '::')[2], ' ')[1]
-        local row = test_names[test_name]
-        if row == nil then goto continue end
+        local node = test_names[test_name]
+        if node == nil then goto continue end
         if data:find('FAILED') then
-          M.place_sign('Failure', bufnr, test_names[test_name])
+          M.place_sign('Failure', bufnr, node)
         else
-          M.place_sign('Success', bufnr, test_names[test_name])
+          M.place_sign('Success', bufnr, node)
         end
         ::continue::
       end

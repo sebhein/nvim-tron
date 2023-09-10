@@ -31,6 +31,8 @@ use {
 ## TODO
 
 - [x] make it work with pants
+- [ ] find line numbers of tests AFTER the test has finished
+- [ ] send a notification when test has finished
 - [ ] explain usage in ReadMe
 - [ ] add some screenshots as example in in ReadMe
 - [ ] make it configurable
