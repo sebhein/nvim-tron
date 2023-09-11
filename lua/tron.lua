@@ -75,6 +75,8 @@ function M.get_test_file(bufnr)
   return M._test_buffs[bufnr]
 end
 
+local wrapped_notify = vim.schedule_wrap(function(msg, level) vim.notify(msg, level) end)
+
 function M.run_test()
   M.clear_signs_in_current_buffer()
   local bufnr = api.nvim_get_current_buf()
@@ -90,8 +92,6 @@ function M.run_test()
     '-s',
     '--no-header'
   }
-
-  print(maybe_one)
 
   if maybe_one then
     local function_name, _ = next(test_names)
@@ -116,9 +116,9 @@ function M.run_test()
     end,
     on_exit = function(j, return_val)
       if return_val == 0 then
-        print('✓ All tests passed!')
+        wrapped_notify('✓ All tests passed!', vim.log.levels.INFO)
       else
-        print('✗ One or more tests failed!')
+        wrapped_notify('✗ One or more tests failed!', vim.log.levels.ERROR)
       end
       CurrentTestFile:write_to_scratch(j:result())
       --print(return_val)
