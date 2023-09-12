@@ -11,8 +11,8 @@ local M = {
 -- Define signs and mappings
 api.nvim_set_hl(0, 'TronFailure', {fg='#ff0000'})
 api.nvim_set_hl(0, 'TronSuccess', {fg='#00ff00'})
-vim.fn.sign_define('TronFailure', {text='✗', texthl='TronFailure'})
-vim.fn.sign_define('TronSuccess', {text='✓', texthl='TronSuccess'})
+vim.fn.sign_define('TronFailure', {text='✗', linehl='TronFailure', texthl='TronFailure'})
+vim.fn.sign_define('TronSuccess', {text='✓', linehl='TronSuccess', texthl='TronSuccess'})
 
 
 
@@ -70,7 +70,7 @@ end
 
 function M.get_test_file(bufnr)
   if M._test_buffs[bufnr] == nil then
-    M._test_buffs[bufnr] = BufferObject:new(bufnr)
+    M._test_buffs[bufnr] = BufferObject:new({bufnr=bufnr})
   end
   return M._test_buffs[bufnr]
 end
@@ -128,8 +128,7 @@ function M.run_test()
 end
 
 function M.show_output()
-  local CurrentTestFile = M.get_test_file(api.nvim_get_current_buf())
-  CurrentTestFile:open_scratch()
+  M.get_test_file(api.nvim_get_current_buf()):open_scratch()
 end
 
 return M
