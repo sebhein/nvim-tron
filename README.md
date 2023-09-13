@@ -35,6 +35,8 @@ use {
 - [x] find line numbers of tests AFTER the test has finished
 - [x] send a notification when test has finished
 - [x] use fancy notification
+- [ ] make a spinner animation while test is running
+- [ ] don't open scratch again if already open
 - [ ] fix: placing signs for tests in class
 - [ ] dont refresh tree for each test
 - [ ] explain usage in ReadMe

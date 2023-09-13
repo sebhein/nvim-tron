@@ -82,14 +82,17 @@ local wrapped_notify = vim.schedule_wrap(function(bo, msg, level, opts)
     title='Tron Test Runner',
     replace=bo.notification_record,
     hide_from_history=true,
+    keep=function() return true end,
   }
   if msg:find('✗') then
     opts['hide_from_history'] = false
     opts['timeout'] = 2000
+    opts['keep'] = function() return false end
     opts['on_close'] = function()
       vim.schedule(function() bo:open_scratch() end)
     end
   elseif msg:find('✓') then
+    opts['keep'] = function() return false end
     opts['hide_from_history'] = false
     opts['timeout'] = 5000
   end
@@ -125,12 +128,6 @@ function M.run_test()
     command = 'pants',
     args = args,
     on_stdout = function(j, data)
-      if spinner_idx == 8 then
-        spinner_idx = 1
-      else
-        spinner_idx = spinner_idx + 1
-      end
-      wrapped_notify(CurrentTestFile, SPINNER[spinner_idx] .. ' Running tests...', vim.log.levels.INFO)
       if data:find('::') then
         local test_name = M.split_string(M.split_string(data, '::')[2], ' ')[1]
         local node = test_names[test_name]
