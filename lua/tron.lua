@@ -3,6 +3,7 @@ local ts_utils = require 'nvim-treesitter.ts_utils'
 local Job = require 'plenary.job'
 local BufferObject = require 'buffer_object'
 local api = vim.api
+vim.notify = require 'notify'
 
 local M = {
   _test_buffs = {},
@@ -15,6 +16,7 @@ vim.fn.sign_define('TronFailure', {text='✗', linehl='TronFailure', texthl='Tro
 vim.fn.sign_define('TronSuccess', {text='✓', linehl='TronSuccess', texthl='TronSuccess'})
 
 
+local SPINNER = { '⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷' }
 
 function M.clear_signs_in_current_buffer()
   vim.fn.sign_unplace('TronSigns', {buffer=api.nvim_get_current_buf()})
@@ -75,7 +77,24 @@ function M.get_test_file(bufnr)
   return M._test_buffs[bufnr]
 end
 
-local wrapped_notify = vim.schedule_wrap(function(msg, level) vim.notify(msg, level) end)
+local wrapped_notify = vim.schedule_wrap(function(bo, msg, level, opts)
+  local opts = {
+    title='Tron Test Runner',
+    replace=bo.notification_record,
+    hide_from_history=true,
+  }
+  if msg:find('✗') then
+    opts['hide_from_history'] = false
+    opts['timeout'] = 2000
+    opts['on_close'] = function()
+      vim.schedule(function() bo:open_scratch() end)
+    end
+  elseif msg:find('✓') then
+    opts['hide_from_history'] = false
+    opts['timeout'] = 5000
+  end
+  bo.notification_record = vim.notify(msg, level, opts)
+end)
 
 function M.run_test()
   M.clear_signs_in_current_buffer()
@@ -97,11 +116,21 @@ function M.run_test()
     local function_name, _ = next(test_names)
     table.insert(args, '-k ' .. function_name)
   end
+  
+  CurrentTestFile:reset_notification()
+  local spinner_idx = 1
+  wrapped_notify(CurrentTestFile, SPINNER[spinner_idx] .. ' Running tests...', vim.log.levels.INFO)
 
   Job:new({
     command = 'pants',
     args = args,
     on_stdout = function(j, data)
+      if spinner_idx == 8 then
+        spinner_idx = 1
+      else
+        spinner_idx = spinner_idx + 1
+      end
+      wrapped_notify(CurrentTestFile, SPINNER[spinner_idx] .. ' Running tests...', vim.log.levels.INFO)
       if data:find('::') then
         local test_name = M.split_string(M.split_string(data, '::')[2], ' ')[1]
         local node = test_names[test_name]
@@ -116,9 +145,9 @@ function M.run_test()
     end,
     on_exit = function(j, return_val)
       if return_val == 0 then
-        wrapped_notify('✓ All tests passed!', vim.log.levels.INFO)
+        wrapped_notify(CurrentTestFile, '✓ All tests passed!', vim.log.levels.INFO)
       else
-        wrapped_notify('✗ One or more tests failed!', vim.log.levels.ERROR)
+        wrapped_notify(CurrentTestFile, '✗ One or more tests failed!', vim.log.levels.ERROR)
       end
       CurrentTestFile:write_to_scratch(j:result())
       --print(return_val)

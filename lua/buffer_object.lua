@@ -9,11 +9,16 @@ function BufferObject:new(o)
   o.filename = api.nvim_buf_get_name(o.bufnr)
   o.scratch_bufnr = api.nvim_create_buf(false, true)
   o.test_names = {}
+  o.notification_record = nil
   return o
 end
 
 function BufferObject:get_path()
   return self.filename
+end
+
+function BufferObject:reset_notification()
+  self.notification_record = nil
 end
 
 function BufferObject:write_to_scratch(content)
