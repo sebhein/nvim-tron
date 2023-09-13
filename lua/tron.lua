@@ -111,7 +111,6 @@ function M.run_test()
     CurrentTestFile:get_path(),
     '--',
     '-v',
-    '-s',
     '--no-header'
   }
 

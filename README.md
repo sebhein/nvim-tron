@@ -4,6 +4,9 @@ Run and view tests results inside NeoVim
 :warning: This is a personal project, if you are looking for something more serious I recommend [Neotest](https://github.com/nvim-neotest/neotest)
 
 
+Uses [pantsbuild](https://www.pantsbuild.org) and pytest to run tests.
+
+
 ## Setup
 
 Uses plenary, treesitter, and nvim-notify.
