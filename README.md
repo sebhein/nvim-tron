@@ -6,7 +6,7 @@ Run and view tests results inside NeoVim
 
 ## Setup
 
-Uses plenary and treesitter.
+Uses plenary, treesitter, and nvim-notify.
 
 Install using your favorite package manager, mine is:
 
@@ -18,6 +18,7 @@ use {
   requires = {
     "nvim-lua/plenary.nvim",
     "nvim-treesitter/nvim-treesitter",
+    "rcarriga/nvim-notify",
   }
 }
 ```
@@ -33,7 +34,8 @@ use {
 - [x] make it work with pants
 - [x] find line numbers of tests AFTER the test has finished
 - [x] send a notification when test has finished
-- [ ] use fancy notification
+- [x] use fancy notification
+- [ ] fix: placing signs for tests in class
 - [ ] dont refresh tree for each test
 - [ ] explain usage in ReadMe
 - [ ] add some screenshots as example in in ReadMe
