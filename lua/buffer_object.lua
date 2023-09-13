@@ -23,7 +23,11 @@ end
 
 function BufferObject:write_to_scratch(content)
   vim.schedule(function()
-    api.nvim_buf_set_lines(self.scratch_bufnr, 0, -1, false, content)
+    local formatted = {}
+    for key, line in ipairs(content) do
+      formatted[key] = api.nvim_replace_termcodes(line, true, false, true)
+    end
+    api.nvim_buf_set_lines(self.scratch_bufnr, 0, -1, false, formatted)
   end)
 end
 
