@@ -8,6 +8,7 @@ function BufferObject:new(o)
   self.__index = self
   o.filename = api.nvim_buf_get_name(o.bufnr)
   o.scratch_bufnr = api.nvim_create_buf(false, true)
+  api.nvim_buf_set_option(o.scratch_bufnr, 'filetype', 'terminal')
   o.test_names = {}
   o.notification_record = nil
   return o
@@ -23,11 +24,7 @@ end
 
 function BufferObject:write_to_scratch(content)
   vim.schedule(function()
-    local formatted = {}
-    for key, line in ipairs(content) do
-      formatted[key] = api.nvim_replace_termcodes(line, true, false, true)
-    end
-    api.nvim_buf_set_lines(self.scratch_bufnr, 0, -1, false, formatted)
+    api.nvim_buf_set_lines(self.scratch_bufnr, 0, -1, false, content)
   end)
 end
 

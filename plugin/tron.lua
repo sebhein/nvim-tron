@@ -1,3 +1,5 @@
+require 'terminal'.setup()
+
 local api = vim.api
 if not api.nvim_create_user_command then
   return
