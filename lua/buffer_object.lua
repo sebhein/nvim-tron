@@ -29,6 +29,11 @@ function BufferObject:write_to_scratch(content)
 end
 
 function BufferObject:open_scratch()
+  for _, winid in ipairs(vim.fn.getwininfo()) do
+    if api.nvim_win_get_buf(winid.winid) == self.scratch_bufnr then
+      return
+    end
+  end
   api.nvim_buf_call(self.scratch_bufnr, function()
     vim.cmd('botright vsplit')
     vim.cmd('vertical resize 100')
