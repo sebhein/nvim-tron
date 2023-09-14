@@ -48,7 +48,7 @@ end
 function BufferObject:place_sign(type, function_name)
   vim.schedule(function()
     -- TODO: this seems pretty expensive to do for every sign
-    local root = ts_utils.get_root_for_position(0, 0)
+    local root = vim.treesitter.get_parser(self.bufnr):parse()[1]:root()
     local test_to_node = {}
     self:collect_function_nodes(root, test_to_node)
     -- this block
