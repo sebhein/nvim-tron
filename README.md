@@ -28,9 +28,9 @@ use {
 
 ## Usage
 
-- `require("tron").run_test()`
-- `require("tron").show_output()` (not implemented)
-- `require("tron").run_test_in_split()`
+- `require("tron").run_test()` or `:TronRun`
+- `require("tron").show_output()` or `:TronShow`
+- `require("tron").clear_signs_in_current_buffer()` or `:TronClear`
 
 ## TODO
 
@@ -38,9 +38,9 @@ use {
 - [x] find line numbers of tests AFTER the test has finished
 - [x] send a notification when test has finished
 - [x] use fancy notification
-- [ ] make a spinner animation while test is running
-- [ ] don't open scratch again if already open
-- [ ] fix: placing signs for tests in class
+- [x] make a spinner animation while test is running
+- [x] don't open scratch again if already open
+- [x] fix: placing signs for tests in class
 - [ ] dont refresh tree for each test
 - [ ] explain usage in ReadMe
 - [ ] add some screenshots as example in in ReadMe
