@@ -1,8 +1,8 @@
 local ts_utils = require 'nvim-treesitter.ts_utils'
 local api = vim.api
-local BufferObject = {}
+local TestFile = {}
 
-function BufferObject:new(o)
+function TestFile:new(o)
   o = o or {}
   setmetatable(o, self)
   self.__index = self
@@ -14,21 +14,21 @@ function BufferObject:new(o)
   return o
 end
 
-function BufferObject:get_path()
+function TestFile:get_path()
   return self.filename
 end
 
-function BufferObject:reset_notification()
+function TestFile:reset_notification()
   self.notification_record = nil
 end
 
-function BufferObject:write_to_scratch(content)
+function TestFile:write_to_scratch(content)
   vim.schedule(function()
     api.nvim_buf_set_lines(self.scratch_bufnr, 0, -1, false, content)
   end)
 end
 
-function BufferObject._buffer_is_open(bufnr)
+function TestFile._buffer_is_open(bufnr)
   for _, winid in ipairs(vim.fn.getwininfo()) do
     if api.nvim_win_get_buf(winid.winid) == bufnr then
       return true
@@ -37,7 +37,7 @@ function BufferObject._buffer_is_open(bufnr)
   return false
 end
 
-function BufferObject:open_scratch()
+function TestFile:open_scratch()
   if self._buffer_is_open(self.scratch_bufnr) then
     return
   end
@@ -47,7 +47,7 @@ function BufferObject:open_scratch()
   end)
 end
 
-function BufferObject:collect_function_nodes(node, result)
+function TestFile:collect_function_nodes(node, result)
     if node:type() == 'function_definition' then
       result[vim.treesitter.get_node_text(node:named_child(0), self.bufnr)] = node
     end
@@ -57,7 +57,7 @@ function BufferObject:collect_function_nodes(node, result)
     end
 end
 
-function BufferObject:place_sign(type, function_name)
+function TestFile:place_sign(type, function_name)
   vim.schedule(function()
 
     -- TODO: this seems pretty expensive to do for every sign
@@ -71,4 +71,4 @@ function BufferObject:place_sign(type, function_name)
   end)
 end
 
-return BufferObject
+return TestFile

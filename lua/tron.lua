@@ -1,7 +1,7 @@
 -- Third party imports
 local ts_utils = require 'nvim-treesitter.ts_utils'
 local Job = require 'plenary.job'
-local BufferObject = require 'buffer_object'
+local TestFile = require 'test_file'
 local api = vim.api
 
 local M = {
@@ -74,15 +74,15 @@ end
 
 function M.get_test_file(bufnr)
   if M._test_buffs[bufnr] == nil then
-    M._test_buffs[bufnr] = BufferObject:new({bufnr=bufnr})
+    M._test_buffs[bufnr] = TestFile:new({bufnr=bufnr})
   end
   return M._test_buffs[bufnr]
 end
 
-local wrapped_notify = vim.schedule_wrap(function(bo, msg, level, opts)
+local wrapped_notify = vim.schedule_wrap(function(tf, msg, level, opts)
   local opts = {
     title='Tron Test Runner',
-    replace=bo.notification_record,
+    replace=tf.notification_record,
     hide_from_history=true,
     keep=function() return true end,
   }
@@ -91,14 +91,14 @@ local wrapped_notify = vim.schedule_wrap(function(bo, msg, level, opts)
     opts['timeout'] = 1000
     opts['keep'] = function() return false end
     opts['on_close'] = function()
-      vim.schedule(function() bo:open_scratch() end)
+      vim.schedule(function() tf:open_scratch() end)
     end
   elseif msg:find('✓') then
     opts['keep'] = function() return false end
     opts['hide_from_history'] = false
     opts['timeout'] = 5000
   end
-  bo.notification_record = vim.notify(msg, level, opts)
+  tf.notification_record = vim.notify(msg, level, opts)
 end)
 
 function M.run_test()
