@@ -28,11 +28,18 @@ function BufferObject:write_to_scratch(content)
   end)
 end
 
-function BufferObject:open_scratch()
+function BufferObject._buffer_is_open(bufnr)
   for _, winid in ipairs(vim.fn.getwininfo()) do
-    if api.nvim_win_get_buf(winid.winid) == self.scratch_bufnr then
-      return
+    if api.nvim_win_get_buf(winid.winid) == bufnr then
+      return true
     end
+  end
+  return false
+end
+
+function BufferObject:open_scratch()
+  if self._buffer_is_open(self.scratch_bufnr) then
+    return
   end
   api.nvim_buf_call(self.scratch_bufnr, function()
     vim.cmd('botright vsplit')
@@ -52,11 +59,13 @@ end
 
 function BufferObject:place_sign(type, function_name)
   vim.schedule(function()
+
     -- TODO: this seems pretty expensive to do for every sign
     local root = vim.treesitter.get_parser(self.bufnr):parse()[1]:root()
     local test_to_node = {}
     self:collect_function_nodes(root, test_to_node)
     -- this block
+
     local row, _, _ = test_to_node[function_name]:start()
     vim.fn.sign_place(0, 'TronSigns', type, self.bufnr, {lnum=row + 1, priority=10}) 
   end)
