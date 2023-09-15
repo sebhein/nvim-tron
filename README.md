@@ -9,7 +9,7 @@ Uses [pantsbuild](https://www.pantsbuild.org) and pytest to run tests.
 
 ## Setup
 
-Uses plenary, treesitter, and nvim-notify.
+Uses plenary, treesitter, nvim-notify, and nvim-terminal. I believe nvim-notify and nvim-terminal are optional (have to make sure nothing breaks if these are not present).
 
 Install using your favorite package manager, mine is:
 
@@ -22,6 +22,7 @@ use {
     "nvim-lua/plenary.nvim",
     "nvim-treesitter/nvim-treesitter",
     "rcarriga/nvim-notify",
+    "norcalli/nvim-terminal.lua",
   }
 }
 ```
