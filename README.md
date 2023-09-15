@@ -29,9 +29,11 @@ use {
 
 ## Usage
 
+All of these actions apply to the current focused buffer.
+
 - `require("tron").run_test()` or `:TronRun`
 - `require("tron").show_output()` or `:TronShow`
-- `require("tron").clear_signs_in_current_buffer()` or `:TronClear`
+- `require("tron").clear_signs()` or `:TronClear`
 
 ## TODO
 

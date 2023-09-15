@@ -18,7 +18,7 @@ local function get_test_file(bufnr)
 end
 
 
-function M.clear_signs_in_current_buffer()
+function M.clear_signs()
   vim.fn.sign_unplace('TronSigns', {buffer=api.nvim_get_current_buf()})
 end
 
@@ -29,7 +29,7 @@ end
 
 
 function M.run_test()
-  M.clear_signs_in_current_buffer()
+  M.clear_signs()
   local bufnr = api.nvim_get_current_buf()
   local CurrentTestFile = get_test_file(bufnr)
   local test_names, maybe_one = py_tree_search.collect_test_names(bufnr)
