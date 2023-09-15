@@ -32,7 +32,7 @@ function M.collect_test_names(bufnr)
   local child = root:named_child(0)
   while child do
     if child:type() == 'decorated_definition' then
-      search_sibling_nodes(child:next_sibling(), bufnr, test_names)
+      search_sibling_nodes(child:named_child(0), bufnr, test_names)
     end
     if child:type() == 'class_definition' then
       local body_child = child:named_child(child:named_child_count() - 1)
