@@ -11,6 +11,9 @@ end
 local function search_sibling_nodes(node, bufnr, tbl)
   while node do
     add_function_node(node, bufnr, tbl)
+    if node:type() == 'decorated_definition' then
+      search_sibling_nodes(node:named_child(0), bufnr, tbl)
+    end
     node = node:next_sibling()
   end
 end
